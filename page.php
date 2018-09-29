@@ -1,6 +1,6 @@
 <?php get_header(); ?>
 
-<mian>
+<mia class="type_page">
 	<?php //query_posts('category_name=news&posts_per_page=10'); ?>
 	<?php if ( have_posts() ) : while ( have_posts() ) : the_post(); ?>
 	  <p><?php the_time('Y.m.d'); ?></p><p><?php $cat = get_the_category(); ?>

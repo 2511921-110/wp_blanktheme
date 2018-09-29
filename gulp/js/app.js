@@ -9,17 +9,9 @@ import VueInstagram from 'vue-instagram'
 import InfiniteLoading from 'vue-infinite-loading'
 
 // original component
-import list from './list.vue'
-import ranking from './ranking.vue'
-import ranking2 from './ranking2.vue'
-import staff from './staff.vue'
 import loader from './loader.vue'
 import posts from './posts.vue'
-import banner from './banner.vue'
 
-
-import Poster from './poster.vue'
-import Casts from './casts.vue'
 import Lightbox from 'vue-pure-lightbox'
 
 Vue.use(Lightbox)
@@ -40,7 +32,7 @@ window.onload = () =>{
 
 let square = () => {
   const square = document.querySelectorAll('.square')
-  square.forEach((v,i)=>{
+  Array.from(square).forEach((v,i)=>{
     v.style.height = v.clientWidth+'px'
   })
 }
@@ -53,33 +45,36 @@ let square = () => {
 // ボックスの横幅から、黄金比での縦サイズを求めて四捨五入
 let pictureHorizon = () => {
   const picture = document.querySelectorAll('.picture-h')
-  picture.forEach((v,i)=>{
+   Array.from(picture).forEach((v,i)=>{
     v.style.height = Math.round(v.clientWidth / 1.618)+'px'
   })
 }
 let pictureVertical = () => {
   const picture = document.querySelectorAll('.picture-v')
-  picture.forEach((v,i)=>{
+   Array.from(picture).forEach((v,i)=>{
     v.style.height = Math.round(v.clientWidth * 1.618)+'px'
   })
 }
 let poster = () => {
   const picture = document.querySelectorAll('.poster')
-  picture.forEach((v,i)=>{
+   Array.from(picture).forEach((v,i)=>{
     v.style.height = Math.round(v.clientWidth * 1.415)+'px'
   })
 }
-let pictureCunstom = (el,type='height',num=2.2) => {
+let pictureCunstom = (el,num=1) => {
   const picture = document.querySelectorAll(el)
-  picture.forEach((v,i)=>{
-    if(type=='height'){
-      v.style.height = Math.round(v.clientWidth / num)+'px'
-    }else if(type=='min-height'){
-      v.style.minHeight = Math.round(v.clientWidth / num)+'px'
-    }
+  Array.from(picture).forEach((v,i)=>{
+    v.style.minHeight = Math.round(v.clientWidth / num)+'px'
   })
 }
-pictureHorizon()
+square()
+// pictureHorizon()
+//使い方　（第一引数に使いたいclassを設定し、第二引数に縦サイズのアスペクト比を入力）
+//pictureCunstom('.picture-h',1.4)
+//pictureCunstom('.section-square__figure',1.618)
+//pictureCunstom('.youtube',1.39)
+//pictureCunstom('.class__inner',1.432 )
+//pictureCunstom('.class',1.335 )
 
 /*******************
   query
@@ -174,50 +169,6 @@ if (document.getElementById('Posts')) {
     },
   })
 }
-
-if (document.getElementById('archives')) {
-  const archivesInstance = new Vue({
-    el: "#archives",
-    data() {
-      return {
-        archives: [],
-        page:1,
-        total:0,
-        secondflag: true,
-      }
-    },
-    components: {
-      list,
-      posts,
-      InfiniteLoading
-    },
-    methods:{
-      infiniteHandler($state) {
-        setTimeout(() => {
-          this.page = this.page + 1
-          axios.get(BASEURL + '/posts?_embed&page='+this.page+query)
-          .then( (response) => {
-            response.data.map((x)=>{
-              this.archives.push(x)
-            })
-          })
-          $state.loaded()
-          if(this.page >= this.total) $state.complete()
-        }, 1000); 
-      },
-    },
-    mounted(){
-      axios(BASEURL+'posts?_embed&page=1'+query)
-      .then( (res) =>{
-        this.archives = res.data
-        if(!res.data.length) secondflag = false
-      })
-    },
-  })
-}
-
-
-
 
 /*******************
   slider
@@ -331,97 +282,6 @@ if (document.getElementById('Map')) {
   })
 }
 
-
-/*******************
-  staff
-*******************/
-
-if (document.getElementById('staff')) {
-  const staffInstance = new Vue({
-    el: "#staff",
-    components: {
-      staff
-    },
-    data() {
-      return {
-        posts: [],
-        // secondflag: true,
-      };
-    },
-    mounted(){
-      axios.get(BASEURL + 'users?_embed&per_page=100')
-      .then( (response) => {
-        // if( response.data.length == 0 ) this.secondflag = false
-
-        this.posts = response.data
-        this.posts.sort((a,b)=>{
-          if(a.acf.castlist<b.acf.castlist) return -1;
-          if(a.acf.castlist > b.acf.castlist) return 1;
-          return 0;
-        })
-        this.$nextTick(()=>{
-          // this.posts = this.posts.filter(this.catFilter)
-          this.posts = this.posts.filter((el,i,a)=>{
-            return el.acf.castlist != undefined
-          })
-        })
-        //console.log(response.data)
-          //console.log(response)
-      })
-    }
-  })
-}
-
-
-/*******************
-  ranking
-*******************/
-
-if (document.getElementById('ranking')) {
-  const rankingInstance = new Vue({
-    el: "#ranking",
-    components: {
-      ranking
-    },
-    data() {
-      return {
-        ranking: [],
-        users: [],
-        user: []
-      };
-    },
-    methods: { 
-      getUser(userId){
-        const promise = new Promise((resolve, reject) => {
-          axios.get(BASEURL + 'authors/'+userId)
-          .then( (res) => {
-            this.$nextTick(()=>{
-              resolve(res.data[0])
-            })
-          })
-        })
-        return promise
-      },
-    },
-    mounted(){
-      axios.get(BASEURL + 'ranking')
-      .then((res)=>{
-        (async () => {
-          for (let x of res.data[0].acf.ranks) {
-            const result = await this.getUser(x.user.ID)
-            this.ranking.push(result)
-            this.$nextTick(()=>{
-              pictureCunstom('.rank__image_first','min-height',2.2)
-              pictureCunstom('.rank__image_other','min-height',2)
-            })
-          }
-        })()
-      })
-    }
-  })
-}
-
-
 /*******************
   Single
 *******************/
@@ -473,134 +333,12 @@ if (document.getElementById('lightbox')) {
 }
 
 
-
-
 /*******************
-  Poster
+  固定ページ上(全固定ページからRest APIへアクセス)
 *******************/
-
-if (document.getElementById('Poster')) {
-  const PosterInstance = new Vue({
-    el: "#Poster",
-    data() {
-      return {
-        datas: [],
-      };
-    },
-    components:{
-      Poster
-    },
-    methods: {
-    },
-    mounted(){
-      axios.get(BASEURL + 'gallery?per_page=4&_embed')
-      .then( (res) => {
-        this.datas = res.data
-        this.$nextTick(()=>{
-          poster()
-        })
-      })
-    }
-  })
-}
-
-
-/*******************
-  banner
-*******************/
-
-if (document.getElementById('Banner')) {
-  const BannerInstance = new Vue({
-    el: "#Banner",
-    data() {
-      return {
-        datas: [],
-      };
-    },
-    components:{
-      banner
-    },
-    methods: {
-    },
-    mounted(){
-      axios.get(BASEURL + 'pages?slug=home')
-      .then( (res) => {
-        this.datas = res.data[0].acf.banner
-        this.$nextTick(()=>{
-          pictureHorizon()
-        })
-      })
-    }
-  })
-}
-
-
-
-/*******************
-  casts
-*******************/
-
-if (document.getElementById('Casts')) {
-  const CastsInstance = new Vue({
-    el: "#Casts",
-    data() {
-      return {
-        datas: [],
-      }
-    },
-    components:{
-      Casts
-    },
-    methods: {
-    },
-    mounted(){
-      axios.get(BASEURL + 'authors?segment=author')
-      .then( (res) => {
-        this.datas = res.data
-        this.$nextTick(()=>{
-          pictureCunstom('.casts__figure','min-height',0.832 )
-        })
-      })
-    }
-  })
-}
-
-/*******************
-  Cast
-*******************/
-
-if (document.getElementById('Cast')) {
-  const CastInstance = new Vue({
-    el: "#Cast",
-    data() {
-      return {
-        data: '',
-      }
-    },
-    components:{
-      // Lightbox
-    },
-    methods: {
-    },
-    mounted(){
-      axios.get(BASEURL + 'authors/'+authorId)
-      .then( (res) => {
-        this.data = res.data[0]
-        this.$nextTick(()=>{
-          // pictureCunstom('.casts__figure','min-height',0.832 )
-        })
-      })
-    }
-  })
-}
-
-
-/*******************
-  固定ページ上
-*******************/
-if (document.getElementById('Gallery')) {
-  const GalleryInstance = new Vue({
-    el: "#Gallery",
+if (document.getElementsByClassName('type_page')[0]) {
+  const type_pageInstance = new Vue({
+    el: ".type_page",
     data() {
       return {
         data: [],
@@ -623,5 +361,237 @@ if (document.getElementById('Gallery')) {
         })
       })
     }
+  })
+}
+
+
+
+/*******************
+  Blog archive
+*******************/
+
+if(document.getElementsByClassName('blogs')){
+  Array.from(document.getElementsByClassName('blogs')).map((x,i)=>{
+    const blogsInstance = new Vue({
+      el: ".blogs",
+      data() {
+        return {
+          dataOrigin: [],
+          datas: [],
+          pager: 1,
+          total: 1,
+          pageTotal: 0,
+          totalPosts: 0,
+        };
+      },
+      methods: {
+        Pager(n){
+          this.pager = n
+        },
+        getPosts(page){
+          const promise = new Promise((resolve, reject) => {
+            axios.get(BASEURL + 'posts?_embed&page='+page)
+            .then( (res) => {
+              this.$nextTick(()=>{
+                resolve(res.data)
+              })
+            })
+          })
+          return promise
+        },
+        description(data,length) {
+          const text = data.content.rendered.replace(/<("[^"]*"|'[^']*'|[^'">])*>/g,'').replace(/\&nbsp\;/g,'')
+          return text.length > length ? text.slice(0,length)+'…' : text
+        },
+        getImgUrl(data,imagesize){
+          if(data._embedded && 
+             data._embedded['wp:featuredmedia'] &&
+             data._embedded['wp:featuredmedia'][0].media_details &&
+             data._embedded['wp:featuredmedia'][0].media_details.sizes[imagesize]){
+            return data._embedded['wp:featuredmedia'][0].media_details.sizes[imagesize].source_url
+          }else{
+            return false
+          }
+        },
+        postDate(data,flag) {
+          const dateArray = data.date.split('-');
+          const y = dateArray[0];
+          const m = dateArray[1];
+          const d = dateArray[2].split("T")[0];
+          return flag ? y+m+d : y + "年" + m + "月" + d + "日";
+        },
+      },
+      mounted(){
+        axios.get(BASEURL + 'posts?_embed&page=1')
+        .then( (res) => {
+          this.pageTotal  = res['headers']['x-wp-totalpages']
+          this.dataOrigin = res.data
+          this.datas = this.dataOrigin.slice(0,perPage)
+          this.total = Math.ceil(res['headers']['x-wp-total'] / perPage)
+          this.$nextTick(()=>{
+            (async () => {
+              for (var i = 2; i <= (this.pageTotal); i++) {
+                const result = await this.getPosts(i)
+                result.map((x)=>this.dataOrigin.push(x))
+              }
+            })()
+          })
+        })
+      },
+      watch: {
+        pager() {
+          let before = 0
+          let after = 0
+          before = this.pager==1 ? this.pager-1 : (this.pager-1)*perPage
+          if(this.pager*perPage > this.dataOrigin.length){
+            after = this.dataOrigin.length
+          }else{
+            after  = this.pager==1 ? this.pager*perPage : this.pager*perPage
+          }
+          this.datas = this.dataOrigin.slice(before,after)
+        }
+      }
+    })
+  })
+}
+
+
+
+/*******************
+  archives
+*******************/
+
+if(document.getElementsByClassName('archives')){
+  Array.from(document.getElementsByClassName('archives')).map((x,i)=>{
+    const archivesInstance = new Vue({
+      el: ".archives",
+      data() {
+        return {
+          dataOrigin: [],
+          datas: [],
+          dataBase: [],
+          pager: 1,
+          total: 1,
+          category:[],
+          searchCategory: [],
+          flag: true,
+          totalPost: 0,
+          searchFlag: false,
+
+          perPage: 0,
+          post_type: "",
+          taxonomy: "",
+          query: "",
+        }
+      },
+      methods: {
+        Pager(n){
+          this.$el.getElementsByClassName('content-pager__page')[this.pager-1].classList.remove('content-pager__page_active')
+          this.pager = n
+          this.$el.getElementsByClassName('content-pager__page')[this.pager-1].classList.add('content-pager__page_active')
+        },
+        getPosts(page){
+          const promise = new Promise((resolve, reject) => {
+            axios.get(BASEURL + this.post_type +'?_embed&page='+page+this.query)
+            .then( (res) => {
+              this.$nextTick(()=>{
+                resolve(res.data)
+              })
+            })
+          })
+          return promise
+        },
+        description(data,length) {
+          const text = data.content.rendered.replace(/<("[^"]*"|'[^']*'|[^'">])*>/g,'').replace(/\&nbsp\;/g,'')
+          return text.length > length ? text.slice(0,length)+'…' : text
+        },
+        getImgUrl(data,imagesize){
+          if(data._embedded && 
+             data._embedded['wp:featuredmedia'] &&
+             data._embedded['wp:featuredmedia'][0].media_details &&
+             data._embedded['wp:featuredmedia'][0].media_details.sizes[imagesize]){
+            return data._embedded['wp:featuredmedia'][0].media_details.sizes[imagesize].source_url
+          }else{
+            return false
+          }
+        },
+        postDate(data,flag) {
+          const dateArray = data.date.split('-');
+          const y = dateArray[0];
+          const m = dateArray[1];
+          const d = dateArray[2].split("T")[0];
+          return flag ? y+m+d : y + "年" + m + "月" + d + "日";
+        },
+      },
+      mounted(){
+        if(typeof this.$el.dataset.perpage !== 'undefined') this.perPage = this.$el.dataset.perpage
+        // if(typeof this.$el.dataset.taxonomy !== 'undefined') this.taxonomy = this.$el.dataset.taxonomy
+        if(typeof this.$el.dataset.post_type !== 'undefined') this.post_type = this.$el.dataset.post_type
+        // if(typeof this.$el.dataset.query !== 'undefined') this.query = this.$el.dataset.query
+
+        // if(this.taxonomy){
+        //   axios.get(BASEURL + this.taxonomy + '?per_page=100')
+        //   .then( (res) => {
+        //     this.category = res.data.filter((x)=>{return x.name != "未分類"})
+        //   })
+        // }
+
+
+        axios.get(BASEURL + this.post_type +'?_embed&page=1'+this.query)
+        .then( (res) => {
+          this.dataOrigin = res.data
+          this.datas = this.dataOrigin.slice(0,this.perPage)
+          this.total = Math.ceil(res['headers']['x-wp-total'] / this.perPage)
+          this.totalPost = res['headers']['x-wp-total']
+          this.$nextTick(()=>{
+            (async () => {
+              for (var i = 2; i <= (res['headers']['x-wp-totalpages']); i++) {
+                const result = await this.getPosts(i)
+                result.map((x)=>this.dataOrigin.push(x))
+              }
+              this.searchFlag = true
+              if(!res.data.length) this.flag = false
+              this.dataBase = this.dataOrigin
+            })()
+          })
+        })
+
+      },
+      watch: {
+        pager() {
+          let before = 0
+          let after = 0
+          before = this.pager==1 ? this.pager-1 : (this.pager-1)*this.perPage
+          if(this.pager*this.perPage > this.dataBase.length){
+            after = this.dataBase.length
+          }else{
+            after  = this.pager==1 ? this.pager*this.perPage : this.pager*this.perPage
+          }
+          this.datas = this.dataBase.slice(before,after)
+        },
+        searchCategory() {
+          if(this.dataBase.length > this.perPage){
+            this.$el.getElementsByClassName('content-pager__page_active')[0].classList.remove('content-pager__page_active')
+            this.pager = 1
+            this.$el.getElementsByClassName('content-pager__page')[0].classList.add('content-pager__page_active')
+          }
+          if(this.searchCategory.length==0){
+            this.dataBase = this.dataOrigin
+            this.datas = this.dataBase.slice(0,this.perPage)
+            this.total = Math.ceil(this.dataBase.length / this.perPage)
+          }else{
+            let tax = this.taxonomy
+            this.dataBase = this.dataOrigin.filter((x)=>{
+              let array1 = x[tax].concat(this.searchCategory)
+              let array2 = Array.from(new Set(array1))
+              return array1.length != array2.length
+            })
+            this.total = Math.ceil(this.dataBase.length / this.perPage)
+            this.datas = this.dataBase.slice(0,this.perPage)
+          }
+          this.flag = this.datas.length ? true : false
+        }
+      }
+    })
   })
 }
