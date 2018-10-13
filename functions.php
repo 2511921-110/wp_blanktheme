@@ -285,3 +285,45 @@ function solecolor_wp_terms_checklist_args( $args, $post_id ){
   return $args;
 }
 add_filter('wp_terms_checklist_args', 'solecolor_wp_terms_checklist_args',10,2);
+
+
+//Rest apiへ追加する
+//カテゴリ名を取得する関数を登録
+add_action( 'rest_api_init', 'register_category_name' );
+
+function register_category_name() {
+//register_rest_field関数を用いget_category_name関数からカテゴリ名を取得し、追加する
+  register_rest_field( 'post',
+    'category_name',
+    array(
+      'get_callback'    => 'get_category_name'
+    )
+  );
+}
+
+//$objectは現在の投稿の詳細データが入る
+function get_category_name( $object ) {
+  $category = get_the_category($object[ 'id' ]);
+  $cat_name = $category[0]->cat_name;
+  return $cat_name;
+}
+
+//タグ名を取得する関数を登録
+add_action( 'rest_api_init', 'register_tag_name' );
+
+function register_tag_name() {
+//register_rest_field関数を用いget_tag_name関数からカテゴリ名を取得し、追加する
+  register_rest_field( 'post',
+    'tag_name',
+    array(
+      'get_callback'    => 'get_tag_name'
+    )
+  );
+}
+
+//$objectは現在の投稿の詳細データが入る
+function get_tag_name( $object ) {
+  $tag = get_the_tags($object[ 'id' ]);
+  $tag_name = $tag;
+  return $tag_name;
+}
