@@ -1,14 +1,16 @@
 <?php get_header(); ?>
 
-<mian>
-	<?php //query_posts('category_name=news&posts_per_page=10'); ?>
-	<?php if ( have_posts() ) : while ( have_posts() ) : the_post(); ?>
-	  <p><?php the_time('Y.m.d'); ?></p><p><?php $cat = get_the_category(); ?>
-	<?php $cat = $cat[0]; ?>
-	<?php echo get_cat_name($cat->term_id); ?></p>
-	  <h3><?php the_title(); ?></h3>
-	  <div><?php the_content(); ?></div>
-	<?php endwhile; endif; ?>
-</mian>
+  <main class="type_page">
+    <time v-if="data" :data-time="data.date" v-text="postFormat(data,'YYYY/MM/DD')"></time>
+    <p v-if="data.category_name" v-text="data.category_name"></p>
+    <figure v-if="getImgUrl(data,'thumbnail')">
+      <img :src="getImgUrl(data,'thumbnail')" :alt="data.title.rendered">
+    </figure>
+    <h3 v-if="data.title" v-text="data.title.rendered"></h3>
+    <div v-if="data.content" v-html="data.content.rendered"></div>
+    <div class="tag" v-if="data.tag_name">
+      <span v-for="tag in data.tag_name" v-text="tag.name"></span>
+    </div>
+  </main>
 
 <?php get_footer(); ?>

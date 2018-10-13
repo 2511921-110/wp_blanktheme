@@ -52,7 +52,7 @@ gulp.task("default", function() {
     .pipe(gulp.dest( dstGlob ));
     });
     browserSync({
-      proxy: "http://hirose.ballet/",
+      proxy: "http://ito.blog/",
       files: [
         "../**/*.css",
         "../**/*.js",

@@ -7,6 +7,7 @@ import './functions'
 import Slick from 'vue-slick'
 import VueInstagram from 'vue-instagram'
 import InfiniteLoading from 'vue-infinite-loading'
+import moment from 'moment'
 
 // original component
 import loader from './loader.vue'
@@ -21,9 +22,10 @@ Vue.use(Lightbox)
 /*******************
   load
 *******************/
-
-window.onload = () =>{
-  document.getElementById('preLoader').classList.add('preloader__remove')
+if(document.getElementById('preLoader')){
+  window.onload = () =>{
+    document.getElementById('preLoader').classList.add('preloader__remove')
+  }
 }
 
 /*******************
@@ -90,20 +92,21 @@ if(typeof search !== 'undefined') query += '&search='+search
 /*******************
   Fixed header
 *******************/
-
-window.onscroll = () => {
-  const el = document.querySelector('.header__inner')
-  const readyClass = 'header__state_ready'
-  const fixedClass = 'header__state_fixed'
-  if(document.documentElement.scrollTop > 110 || document.body.scrollTop > 110){
-    el.classList.add(readyClass)
-  }else{
-    el.classList.remove(readyClass)
-  }
-  if(document.documentElement.scrollTop > 111 || document.body.scrollTop > 111){
-    el.classList.add(fixedClass)
-  }else{
-    el.classList.remove(fixedClass)
+if(document.getElementsByClassName('header__inner')[0]){
+  window.onscroll = () => {
+    const el = document.querySelector('.header__inner')
+    const readyClass = 'header__state_ready'
+    const fixedClass = 'header__state_fixed'
+    if(document.documentElement.scrollTop > 110 || document.body.scrollTop > 110){
+      el.classList.add(readyClass)
+    }else{
+      el.classList.remove(readyClass)
+    }
+    if(document.documentElement.scrollTop > 111 || document.body.scrollTop > 111){
+      el.classList.add(fixedClass)
+    }else{
+      el.classList.remove(fixedClass)
+    }
   }
 }
 
@@ -111,23 +114,24 @@ window.onscroll = () => {
 /*******************
   Nav
 *******************/
+if(document.getElementsByClassName('header__nav_icon')[0]){
+  const nav_el = document.querySelector('.header__nav_icon')
+  const nav_state_class = 'header__nav_state_on'
+  const nav_target_class = '.header__nav'
+  const nav_close_class = '.header__nav_close'
 
-const nav_el = document.querySelector('.header__nav_icon')
-const nav_state_class = 'header__nav_state_on'
-const nav_target_class = '.header__nav'
-const nav_close_class = '.header__nav_close'
+  nav_el.addEventListener('click',()=>{
+    if(document.querySelector('.'+ nav_state_class) == null){
+      document.querySelector(nav_target_class).classList.add(nav_state_class)
+    }else{
+      document.querySelector(nav_target_class).classList.remove(nav_state_class)
+    }
+  },false)
 
-nav_el.addEventListener('click',()=>{
-  if(document.querySelector('.'+ nav_state_class) == null){
-    document.querySelector(nav_target_class).classList.add(nav_state_class)
-  }else{
+  document.querySelector(nav_close_class).addEventListener('click',()=>{
     document.querySelector(nav_target_class).classList.remove(nav_state_class)
-  }
-},false)
-
-document.querySelector(nav_close_class).addEventListener('click',()=>{
-  document.querySelector(nav_target_class).classList.remove(nav_state_class)
-},false)
+  },false)
+}
 
 
 
@@ -348,10 +352,31 @@ if (document.getElementsByClassName('type_page')[0]) {
       //Lightbox
     },
     methods: {
+      postDate(data,flag) {
+        const dateArray = data.date.split('-');
+        const y = dateArray[0];
+        const m = dateArray[1];
+        const d = dateArray[2].split("T")[0];
+        return flag ? y+m+d : y + "年" + m + "月" + d + "日";
+      },
+      postFormat(data,dateflag){
+        const dateFormat = moment(data.date).format(dateflag)
+        return dateFormat;
+      },
+      getImgUrl(data,imagesize){
+        if(data._embedded && 
+           data._embedded['wp:featuredmedia'] &&
+           data._embedded['wp:featuredmedia'][0].media_details &&
+           data._embedded['wp:featuredmedia'][0].media_details.sizes[imagesize]){
+          return data._embedded['wp:featuredmedia'][0].media_details.sizes[imagesize].source_url
+        }else{
+          return false
+        }
+      },
     },
     mounted(){
       //console.log(BASEURL + 'pages/' + page_id)
-      axios.get(BASEURL + 'pages/' + page_id)
+      axios.get(BASEURL + rest + id+'?_embed')
       .then( (res) => {
         //console.log(res.data)
         //this.datas = res.data[0]
@@ -359,6 +384,8 @@ if (document.getElementsByClassName('type_page')[0]) {
         this.$nextTick(()=>{
           // pictureCunstom('.casts__figure','min-height',0.832 )
         })
+        // const dateFormat = moment('2018-10-06T05:00:29').format('YYYY.MM.DD')
+        // console.log(dateFormat)
       })
     }
   })
@@ -461,7 +488,7 @@ if(document.getElementsByClassName('blogs')){
   archives
 *******************/
 
-if(document.getElementsByClassName('archives')){
+if(document.getElementsByClassName('archives')[0]){
   Array.from(document.getElementsByClassName('archives')).map((x,i)=>{
     const archivesInstance = new Vue({
       el: ".archives",
